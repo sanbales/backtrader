@@ -36,6 +36,12 @@ import matplotlib.font_manager as mfontmgr
 import matplotlib.legend as mlegend
 import matplotlib.ticker as mticker
 
+try:
+    from IPython import get_ipython
+    ipython = get_ipython()
+except ImportError:
+    ipython = None
+
 from ..utils.py3 import range, with_metaclass, string_types, integer_types
 from .. import AutoInfoClass, MetaParams, TimeFrame, date2num
 
@@ -68,8 +74,9 @@ class PInfo(object):
 
         self.prop = mfontmgr.FontProperties(size=self.sch.subtxtsize)
 
-    def newfig(self, figid, numfig, mpyplot):
-        fig = mpyplot.figure(figid + numfig)
+    def newfig(self, figid, numfig, mpyplot, figsize=None):
+        figsize = figsize or (16, 9)
+        fig = mpyplot.figure(figid + numfig, figsize=figsize)
         self.figs.append(fig)
         self.daxis = collections.OrderedDict()
         self.vaxis = list()
@@ -114,7 +121,7 @@ class Plot_OldSync(with_metaclass(MetaParams, object)):
                       **kwargs)
 
     def plot(self, strategy, figid=0, numfigs=1, iplot=True,
-             start=None, end=None, **kwargs):
+             start=None, end=None, width=16, height=9, **kwargs):
         # pfillers={}):
         if not strategy.datas:
             return
@@ -127,6 +134,9 @@ class Plot_OldSync(with_metaclass(MetaParams, object)):
                 matplotlib.use('nbagg')
 
         # this import must not happen before matplotlib.use
+        if ipython:
+            ipython.run_line_magic('matplotlib', 'inline')
+
         import matplotlib.pyplot as mpyplot
         self.mpyplot = mpyplot
 
@@ -164,7 +174,7 @@ class Plot_OldSync(with_metaclass(MetaParams, object)):
 
         for numfig in range(numfigs):
             # prepare a figure
-            fig = self.pinf.newfig(figid, numfig, self.mpyplot)
+            fig = self.pinf.newfig(figid, numfig, self.mpyplot, figsize=(width, height))
             figs.append(fig)
 
             self.pinf.pstart, self.pinf.pend, self.pinf.psize = pranges[numfig]
